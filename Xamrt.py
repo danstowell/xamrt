@@ -23,14 +23,14 @@ from numpy.random import randn, rand
 from numpy.linalg import eigh as eigh
 from numpy.random import randn
 
-# fairly standard PCA algo; thanks to http://www.procoders.net/?p=124
 def pca(data):
-    values, vecs = eigh(cov(data))
-    perm = argsort(-values)  # sort in descending order
-    return values[perm], vecs[:, perm]
+	"fairly standard PCA algo; thanks to http://www.procoders.net/?p=124"
+	values, vecs = eigh(cov(data))
+	perm = argsort(-values)  # sort in descending order
+	return values[perm], vecs[:, perm]
 
-# finds the first principal component of the balanced concatenation of two datasets
 def pcdual(data1, data2, dims=0, e=0.000000000001):
+	"finds the first principal component of the balanced concatenation of two datasets"
 	if dims == 0:
 		dims = data1.shape[1]
 	else:
@@ -59,17 +59,16 @@ class Xamrt(object):
 	
 	gnuplotpath = '/opt/local/bin/gnuplot'
 	
-	# Processes CSV files, writing new CSV files in PlaneTree format, and 
-	# also returning the Xamrt instance in case you want it.
-	# "normalise" can be set to true to normalise the stddevs of the axes before calculation (then rescaled afterwards back to the original domain).
-	# "matchercols" only useful for rare validation purposes: if the datasets can be sorted by these cols to yield the natural matching orders, it will validate based on that.
 	@classmethod
 	def processcsv(cls, path0, path1, dims=0, sizethresh=1, maxdepth=99, plot=True, startrow0=0, startrow1=0, prune=0, \
-		# Note that colindices are applied AFTER the startcol stuff so the startcol can add an offset:
 		startcol0=0, startcol1=0, colindices0=-1, colindices1=-1, outdir='', normalise=False, \
 			matchercols=-1,   #if there's a column which you expect to match up exactly between the datasets (for validation)
 			revmapcols0=-1, revmapcols1=-1    # if specified then writes out .trevmap data - often will use "controls" columns
 			):
+		"""Processes CSV files, writing new CSV files in PlaneTree format, and also returning the Xamrt instance in case you want it.
+		"normalise" can be set to true to normalise the stddevs of the axes before calculation (then rescaled afterwards back to the original domain).
+		"matchercols" only useful for rare validation purposes: if the datasets can be sorted by these cols to yield the natural matching orders, it will validate based on that."""
+		# Note that colindices are applied AFTER the startcol stuff so the startcol can add an offset:
 		import csv, os
 		
 		if not os.path.exists(path0):
@@ -228,9 +227,8 @@ class Xamrt(object):
 		
 		
 	#################
-	# Constructor
-	# (Note: do NOT supply the pathInt argument, it's used for recursion)
 	def __init__(self, data0, data1, dims, sizethresh=2, maxdepth=Inf, pathInt=1):
+		"Constructor. (Note: do NOT supply the pathInt argument, it's used for recursion)"
 		# Ensure numpy
 		data0 = array(data0)
 		data1 = array(data1)
@@ -278,8 +276,8 @@ class Xamrt(object):
 		else:
 			self.kidr = [d0r, d1r]
 
-	# Depth-first recursive method to prune the tree
 	def prune(self, thresh=0.5):
+		"Depth-first recursive method to prune the tree"
 		if self.lbranches():
 			self.kidl.prune(thresh)
 			if   (self.kidl.kidl.__class__  != self.__class__) \
@@ -298,8 +296,8 @@ class Xamrt(object):
 					#print "merging node (%d %d|%d %d)" % (len(self.kidr.kidl[0]), len(self.kidr.kidl[1]), len(self.kidr.kidr[0]), len(self.kidr.kidr[1]))
 					self.kidr = self.kidr.items()
 
-	# Jackknife test for how stable the split (i.e. the principal component axis) is
 	def stabilitytest(self):
+		"Jackknife test for how stable the split (i.e. the principal component axis) is"
 		td = self.items()
 		# from Xamrt import *; p = Xamrt.processcsv("/Users/dan/backups/_mysvn_/stored_docs/dataoutput/MappedSource/mixedvoicedata.csv", "/Users/dan/backups/_mysvn_/stored_docs/dataoutput/MappedSource/MappedSynthSuperSimple_tcbuf.csv", 14, maxdepth=12, plot=False, prune=0, startrow1=1, startrow2=0)
 		# p.prune()
@@ -326,10 +324,10 @@ class Xamrt(object):
 		       (dist1 / len(td[1])) ) * 0.5
 		return val
 
-	# VALIDATION: double-check that every datum gets mapped to a leaf that contains itself
-	# This *must* be fed the data (data0, data1) that was used to build the tree, that's the only meaningful use of this.
-	# "inexact" argument can be set to True to accommodate rounding error (necessary if you've used scaling)
 	def validate(self, data0, data1, inexact=False):
+		"""VALIDATION: double-check that every datum gets mapped to a leaf that contains itself
+		This *must* be fed the data (data0, data1) that was used to build the tree, that's the only meaningful use of this.
+		"inexact" argument can be set to True to accommodate rounding error (necessary if you've used scaling)"""
 		thresh = 1e-10
 		for datum in data0:
 			leaf = self.getleaf(self.classify(datum, 0))
@@ -363,8 +361,8 @@ class Xamrt(object):
 
 
 
-	# Do not supply the three arguments yourself - they're for recursion
 	def meandepth(self, curdepth=0, runningsum=0, runningcount=0):
+		"Do not supply the three arguments yourself - they're for recursion"
 		# Recurse left
 		if self.lbranches():
 			[runningsum, runningcount] = self.kidl.meandepth(curdepth + 1, runningsum, runningcount)
@@ -383,8 +381,8 @@ class Xamrt(object):
 		else:
 			return [runningsum, runningcount]
 	
-	# Do not supply the arguments yourself - they're for recursion
 	def maxdepth(self, curdepth=0):
+		"Do not supply the arguments yourself - they're for recursion"
 		curdepth = curdepth + 1
 		if self.lbranches():
 			curdepth_l = self.kidl.maxdepth(curdepth)
@@ -397,8 +395,8 @@ class Xamrt(object):
 		return max(curdepth_l, curdepth_r)
 		 
 	
-	# Count leaf nodes. Do not supply arguments yourself - they're for recursion
 	def numleaves(self, runningcount=0):
+		"Count leaf nodes. Do not supply arguments yourself - they're for recursion"
 		# Recurse left
 		if self.lbranches():
 			runningcount = self.kidl.numleaves(runningcount)
@@ -411,9 +409,9 @@ class Xamrt(object):
 			runningcount = runningcount + 1
 		return runningcount
 		
-	# Similar to the .clusters method but lumps all the clusters together,
-	# returning merely an array holding two lists of the datapoints
 	def items(self):
+		"""Similar to the .clusters method but lumps all the clusters together,
+		returning merely an array holding two lists of the datapoints"""
 		if self.lbranches():
 			l = self.kidl.items()
 		else:		
@@ -425,11 +423,12 @@ class Xamrt(object):
 		
 		return [l[0] + r[0], l[1] + r[1]]
 
-	# gets the data point arrays from the leaves. returns an array, 
-	# each item containing two elements (array of data0, array of data1).
-	# maxdepth can be used to merge clusters below that depth.
-	# NOTE: the order of the returned clusters is not specified, in particular it's not the same order as the natural ordering of pathInt!
 	def clusters(self, maxdepth=Inf):
+		"""gets the data point arrays from the leaves. returns an array, 
+		each item containing two elements (array of data0, array of data1).
+		maxdepth can be used to merge clusters below that depth.
+		NOTE: the order of the returned clusters is not specified, 
+		in particular it's not the same order as the natural ordering of pathInt!"""
 		if self.lbranches():
 			if maxdepth == 1:
 				l = [self.kidl.items()]
@@ -448,8 +447,8 @@ class Xamrt(object):
 
 		return l + r
 
-	# Uses clusters() to produce scatter plots in gnuplot
 	def scatter(self, maxdepth=Inf, rotate=True):
+		"Uses clusters() to produce scatter plots in gnuplot"
 		from subprocess import Popen
 		c = self.clusters(maxdepth)
 		if rotate:
@@ -471,11 +470,11 @@ class Xamrt(object):
 			plotcmd = 'set key off; splot ' + ', '.join(map(lambda i: '\'%s\' index %i with points' % (path, i), range(len(c)))) + '; pause -1'
 			Popen([self.gnuplotpath, '-e', plotcmd])
 
-	# Writes TWO data files, each in the format specified in PlaneTree.html
-	# ...except in CSV format since I don't know of a way to get python to write float aiffs.
-	# Also we'll write out the centroid data, that might be helpful too.
-	# Also if you pass in data0 and data1 then it writes out their classifications.
 	def write(self, path, data0=[], data1=[], revmap0=[], revmap1=[]):
+		"""Writes TWO data files, each in the format specified in PlaneTree.html
+		...except in CSV format since I don't know of a way to get python to write float aiffs.
+		Also we'll write out the centroid data, that might be helpful too.
+		Also if you pass in data0 and data1 then it writes out their classifications."""
 		path0 = path + '.0.csv'
 		path1 = path + '.1.csv'
 		path0_c = path + '.cent0.csv'
@@ -634,8 +633,8 @@ class Xamrt(object):
 			
 			latestPathInt = latestPathInt + 1
 		
-	# Find the centroid of every cluster
 	def centroids(self, maxdepth=Inf):
+		"Find the centroid of every cluster"
 		c = self.clusters(maxdepth)
 		cent = []
 		for clus in c:
@@ -643,9 +642,9 @@ class Xamrt(object):
 			             mean(map(lambda x: x[:self.dims], clus[1]),0)])
 		return cent
 	
-	# draw a plot with vectors showing how the centroids 'move' (how they match up with each other).
-	# (remember that gnuplot 'vectors' style requires [x,y,z,dx,dy,dz])
 	def vecmap(self, maxdepth=Inf, rotate=True, writepath=''):
+		"draw a plot with vectors showing how the centroids 'move' (how they match up with each other)."
+		# (remember that gnuplot 'vectors' style requires [x,y,z,dx,dy,dz])
 		from subprocess import Popen
 		c = self.centroids(maxdepth)
 		path = '/tmp/py_to_gnuplot_vecmap.txt'
@@ -668,19 +667,19 @@ class Xamrt(object):
 		plotcmd = plotcmd + ' pause -1'
 		Popen([self.gnuplotpath, '-e', plotcmd])
 
-	# Returns a matrix for randomly projecting the data down to 3D
 	def randrot3(self):
+		"Returns a matrix for randomly projecting the data down to 3D"
 		return pca(randn(self.dims, 100))[1][:,:self.dims]
 		
-	# Returns a matrix for pca-projecting the data down to 3D
 	def pcarot3(self):
+		"Returns a matrix for pca-projecting the data down to 3D"
 		return pca(array(self.items()[0]).transpose())[1][:,:self.dims]
 	
-	# Classify a new datapoint using one of the two distribs' trees 
-	# (whichdistrib=0 or 1). Returns an integer indicating which leaf 
-	# the datum falls into. The integer's binary representation represents the 
-	# location in the tree - each bit storing 0 for left, 1 for right (the root node being the MostSignificantBit 1).
 	def classify(self, datum, whichdistrib):
+		"""Classify a new datapoint using one of the two distribs' trees 
+		(whichdistrib=0 or 1). Returns an integer indicating which leaf 
+		the datum falls into. The integer's binary representation represents the 
+		location in the tree - each bit storing 0 for left, 1 for right (the root node being the MostSignificantBit 1)."""
 		
 		if len(shape(datum)) != 1:
 			print "ERROR, input datum must be 1D"
@@ -713,8 +712,8 @@ class Xamrt(object):
 		else:
 			return kid.__classify(datum, whichdistrib)
 	
-	# Use an integer as returned by "classify", to retrieve a particular leaf's contents
 	def getleaf(self, pathint):
+		"Use an integer as returned by classify(), to retrieve a particular leaf's contents"
 		found = self.getnode(pathint)
 		if found.__class__  == self.__class__:
 			raise Error("getleaf() recursion error: finished recursion but not reached a leaf! curbitmask %i, pathint %i" % (curbitmask, pathint))
@@ -763,9 +762,9 @@ class Xamrt(object):
 			self.kidr = map(lambda set: map(lambda datum: datum * muls, set), self.kidr)
 	
 	
-	# Given two path integers as determined by classify(), this finds the tree distance between them
 	@classmethod
 	def treedistance(cls, pathInt1, pathInt2):
+		"Given two path integers as determined by classify(), this finds the tree distance between them"
 		bitpos1=0
 		bitpos2=0
 		# First we find the MSB 1 representing the root node in each one
@@ -795,8 +794,8 @@ class Xamrt(object):
 	def rbranches(self):
 		return self.kidr.__class__ == self.__class__
 	
-	# two trees defined as equal if their partition structure is the same (ignore any data points stored in leaves)
 	def equals(self, other):
+		"two trees defined as equal if their partition structure is the same (ignore any data points stored in leaves)"
 		return all(self.centre0 == other.centre0) and \
 		       all(self.centre1 == other.centre1) and \
 		       all(self.pc      == other.pc     ) and \
@@ -806,8 +805,8 @@ class Xamrt(object):
 		       (not(self.rbranches()) or self.kidr.equals(other.kidr))
 		
 		
-	# a check used during the recursive construction
 	def subset_is_nonsingular(self, arr, name, otherset):
+		"a check used during the recursive construction"
 		if len(arr) == 1:
 			return False
 		elif len(arr) == 0:
