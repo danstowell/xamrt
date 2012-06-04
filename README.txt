@@ -10,8 +10,13 @@ ABOUT
 Xamrt is a multivariate regression-tree which can learn to associate regions of
 two unlabelled distributions defined on the same axes.
 
-Its theoretical background is described in a submitted research paper, and in
-the author's PhD thesis:
+Its theoretical background is described in the following journal paper:
+
+* Stowell, D., Plumbley, M. D., 2011. 
+    Learning timbre analogies from unlabelled data by multivariate tree regression. 
+    Journal of New Music Research. doi:10.1080/09298215.2011.596938.
+
+It's also described in the author's PhD thesis:
 
 @phdthesis{Stowell:2010,
 	Author = {Stowell, D.},
